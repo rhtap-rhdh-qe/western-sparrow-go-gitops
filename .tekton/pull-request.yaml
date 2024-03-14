@@ -1,0 +1,47 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: western-sparrow-go-on-pull-request
+  namespace: rhtap-e2e-ci
+  labels:
+    argocd/app-name: western-sparrow-go
+    janus-idp.io/tekton: western-sparrow-go
+    backstage.io/kubernetes-id: western-sparrow-go
+    backstage.io/kubernetes-namespace: rhtap-e2e-ci 
+    app.kubernetes.io/part-of: western-sparrow-go
+  annotations:
+    pipelinesascode.tekton.dev/on-event: "[pull_request]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
+    pipelinesascode.tekton.dev/max-keep-runs: "2"
+    pipelinesascode.tekton.dev/pipeline: "https://raw.githubusercontent.com/redhat-appstudio/tssc-sample-pipelines/main/new-for-dance/pipelines-helm/pipeline-promote.yaml"
+    # Todo: pac tasks need to be added after the pipleline has been finalized
+    # pipelinesascode.tekton.dev/task-0: "https://raw.githubusercontent.com/redhat-appstudio/tssc-sample-pipelines/main/pac/tasks/init.yaml"
+    # pipelinesascode.tekton.dev/task-1: "https://raw.githubusercontent.com/redhat-appstudio/tssc-sample-pipelines/main/pac/tasks/git-clone.yaml"
+    # pipelinesascode.tekton.dev/task-2: "https://raw.githubusercontent.com/redhat-appstudio/tssc-sample-pipelines/main/new-for-dance/tasks/task-verify-enterprise-contract.yaml"
+spec: 
+  params:
+  # Todo: params need to be updated after the pipeline has been finalized
+  - name: namespace
+    value: rhtap-e2e-ci
+  - name: gitops-repo-url
+    value: https://github.com/rhtap-rhdh-qe/western-sparrow-go-gitops
+  - name: source-repo-url
+    value: https://github.com/rhtap-rhdh-qe/western-sparrow-go
+  - name: component-id
+    value: western-sparrow-go
+  - name: revision
+    value: '{{revision}}'
+  - name: argocd-host
+    value: argocd.example.com # hardcoded for now
+  pipelineRef:
+    name: western-sparrow-go-gitops-promote
+  workspaces:
+    - name: workspace
+      volumeClaimTemplate: 
+        spec:
+          accessModes:
+          - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+ 
